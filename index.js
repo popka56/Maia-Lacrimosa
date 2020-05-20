@@ -7,7 +7,7 @@ let token = instance.getToken();
 
 //Create our bot
 const bot = new Discord.Client();
-const prefix = 'Maia, '; //Hade varit roligt om det var 'Maia, ' som prefix...
+const prefix = 'Maia, ';
 
 //declarations
 let ffxivItemData = {
