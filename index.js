@@ -222,6 +222,17 @@ bot.on('message', message => {
             message.channel.send("Sorry, I didn't understand that :(");
         }
     }
+
+    //react on messages in the-goblet, jojokes and work channels
+    if (message.channel.name === "the-goblet") {
+        message.react('👍');
+    }
+    else if(message.channel.name === "jojokes"){
+        message.react('😂');
+    }
+    else if(message.channel.name === "work"){
+        message.react('👍');
+    }
 })
 
 
