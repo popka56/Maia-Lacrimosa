@@ -1,4 +1,4 @@
-//Requires
+//Require
 const Discord = require('discord.js');
 const fetch = require('node-fetch');
 // get bot token from local file
