@@ -1,15 +1,31 @@
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+================================================================================================
+=====================================IMPORTS====================================================
+================================================================================================
+-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 //Require
 const Discord = require('discord.js');
 const fetch = require('node-fetch');
-// get bot token from local file
+//Get bot token from local file
 const instance = require('./token.js');
 let token = instance.getToken();
+let destinyApiKey = instance.getApiKey();
 
 //Create our bot
 const bot = new Discord.Client();
 const prefix = 'Maia, ';
 
-//declarations
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+================================================================================================
+=====================================DECLARATIONS===============================================
+================================================================================================
+-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+
+//Objects
 let ffxivItemData = {
     ID: "",
     Name: "",
@@ -30,15 +46,35 @@ let ffxivProfileData = {
     ClassLevel: 0,
     GrandCompany: "",
     FreeCompany: "",
-    Bio: ""
+    Title: "",
+    TitleId: 0
 }
 
+let Servers = {
+    Aether: "",
+    Chaos: "",
+    Crystal: "",
+    Elemental: "",
+    Gaia: "",
+    Light: "",
+    Mana: "",
+    Primal: ""
+}
+
+//Strings
 let songName = '';
 let youtubeLink = '';
 
+//Ints
 let numberOfResults = 0;
 
-//Set discord status on awake
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+================================================================================================
+=====================================ON READY===================================================
+================================================================================================
+-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 bot.on('ready', () => {
     let randomSong = Math.floor(Math.random() * 10);
     switch(randomSong){
@@ -90,14 +126,29 @@ bot.on('ready', () => {
     bot.user.setActivity(songName, {type: 'LISTENING'});
 })
 
-//Behavior code goes here
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+================================================================================================
+=====================================On MESSAGE=================================================
+================================================================================================
+-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+
+//Preperations
 bot.on('message', message => {
     // the message uses the prefix, or a variant of it
-    if(message.content.startsWith(prefix) || message.content.startsWith('maia, ')){
+    if(message.content.startsWith(prefix) || message.content.startsWith('maia, ') || message.mentions.has(bot.user)){
         // split the message into an array called args for word for word specific commands
         let args = message.content.substring(prefix.length).split(' ');
+        //remove the first index if it was a mention, as the first index will get the id of the bot otherwise
+        if(message.mentions.has(bot.user)){
+            args.splice(0, 1);
+        }
 
-        // ask Maia for her commands (Maia, what can you do? || Maia, what are your commands? || Maia, help)
+/*====================================================================================
+===========================COMMAND #1 - DISPLAY COMMANDS==============================
+======[Maia, what can you do? || Maia, what are your commands || Maia, help]==========
+====================================================================================*/
         if((args[0] == 'what' && args[1] == 'can' && args[2] == 'you' && (args[3] == 'do' || args[3] == 'do?')) || (args[0] == 'what' && args[1] == 'are' && args[2] == 'your' && (args[3] == 'commands' || args[3] == 'commands?')) || args[0] == 'help'){
             message.reply("I'll send you a pm! :)");
             showCommands(message);
@@ -120,7 +171,10 @@ bot.on('message', message => {
             //fetch the item
             findItem(itemId, message);
         }
-        //find player (Maia, find player X Y)
+/*====================================================================================
+=============================COMMAND #2 - FIND PLAYER=================================
+==================[Maia, find player X (first name) Y (last name)]====================
+====================================================================================*/
         else if(args[0] == 'find' && args[1] == 'player' && args[3] != undefined && args[4] == undefined){
             fetch('https://xivapi.com/character/search?name=' + args[2] + '+' + args[3])
             .then(response => response.json())
@@ -135,7 +189,7 @@ bot.on('message', message => {
                         processPlayerProfile(newResult, message);
                     })
                     //while fetching player profile
-                    message.channel.send("I found " + numberOfResults + " players with matching names!");
+                    message.channel.send("I found " + numberOfResults + " player(s) with a matching name!");
                 }
                 else{
                     message.channel.send("I couldn't find that person :(\nDid you misspell the name?");
@@ -144,7 +198,10 @@ bot.on('message', message => {
             //while fetching ID
             message.channel.send('Alright, hold on...');
         }
-        //find player on specific server (Maia, find player X Y on Z)
+/*====================================================================================
+=============================COMMAND #3 - FIND PLAYER ON SERVER=======================
+============[Maia, find player X (first name) Y (last name) Z (server name)]==========
+====================================================================================*/
         else if(args[0] == 'find' && args[1] == 'player' && args[4] == 'on' && args[5] != undefined){
             fetch('https://xivapi.com/character/search?name=' + args[2] + '+' + args[3] + '&server=' + args[5])
             .then(response => response.json())
@@ -167,15 +224,24 @@ bot.on('message', message => {
             //while fetching ID
             message.channel.send("Okay, just a sec...");
         }
-        // ask what she is listening to (Maia, what are you listening to?)
+/*====================================================================================
+=============================COMMAND #4 - GET STATUS MUSIC============================
+===========================[Maia, what are you listening to?]=========================
+====================================================================================*/
         else if(args[0] == 'what' && args[1] == 'are' && args[2] == 'you' && args[3] == 'listening' && (args[4] == 'to?' || args[4] == 'to')){
             message.channel.send("One of my favs 🎵 \n" + youtubeLink);
         }
-        // ask if she is okay (Maia, are you okay?)
+/*====================================================================================
+=============================COMMAND #5 - MAIA'S HEALTH===============================
+================================[Maia, are you okay?]=================================
+====================================================================================*/
         else if(args[0] == 'are' && args[1] == 'you' && (args[2] == 'ok' || args[2] == 'okay' || args[2] == 'k' || args[2] == 'ok?' || args[2] == 'okay?' || args[2] == 'k?')){
             message.channel.send("Yes I'm fine, thank you :)");
         }
-        //ask who Maia is
+/*====================================================================================
+=============================COMMAND #6 - GET MAIA PROFILE============================
+===================================[Maia, who are you?]===============================
+====================================================================================*/
         else if(args[0] == 'who' && args[1] == 'are' && (args[4] == 'you' || args[4] != 'you?')){
             fetch('https://xivapi.com/character/20350668?data=CJ,FC')
             .then(response => response.json())
@@ -185,7 +251,33 @@ bot.on('message', message => {
             })
             message.channel.send("I'll just show you...");
         }
-        //link to website (DM role only)
+/*====================================================================================
+=============================COMMAND #7 - LIST SERVERS================================
+==============================[Maia, find all servers]================================
+====================================================================================*/
+        else if(args[0] == 'find' && args[1] == 'all' && (args[4] == 'servers' || args[4] != 'datacenters')){
+            fetch('https://xivapi.com/servers/dc')
+            .then(response => response.json())
+            .then(result => { 
+                //process the servers
+                getServers(result);
+                //display the server list
+                message.reply("I'll send you a list! :)")
+                message.author.send('Here they are :)');
+                let embed = new Discord.MessageEmbed()
+                .setTitle('Servers & Datacenters')
+                .setColor(0xA569BD)
+                .addField('Chaos (European Data Center)' + Servers.Chaos + "\n", 'Light (European Data Center)' + Servers.Light)
+                .addField('Aether (North American Data Center)' + Servers.Aether + "\n", 'Crystal (North American Data Center)' + Servers.Crystal)
+                .addField('Primal (North American Data Center)' + Servers.Primal + "\n", 'Elemental (Japanese Data Center)' + Servers.Elemental)
+                .addField('Gaia (Japanese Data Center)' + Servers.Gaia + "\n", 'Mana (Japanese Data Center)' + Servers.Mana)
+                message.author.send(embed);
+             })
+        }
+/*====================================================================================
+=============================COMMAND #8 - LINK WEBSITE================================
+==================[Maia, find my website ('The DM' role only)]========================
+====================================================================================*/
         else if(args[0] == 'find' && args[1] == 'my' && (args[2] == 'world' || args[2] == 'website')){
             if(message.member.roles.cache.find(role => role.name === "The DM")){
                 message.channel.send("https://thorczhia.com/");
@@ -194,7 +286,10 @@ bot.on('message', message => {
                 message.reply("You're not the DM!");
             }
         }
-        //get some reactions
+/*====================================================================================
+=============================COMMAND #9 - REACTIONS===================================
+==========================[Maia, you are X (flattery)]================================
+====================================================================================*/
         else if(args[0] == 'you' && args[1] == 'are' && args[2] != null){
             switch(args[2]){
                 case "cute":
@@ -208,22 +303,50 @@ bot.on('message', message => {
                     break;
             }
         }
-        //test
-        else if(args[0] == "test"){
-            fetch('https://results.dogpile.com/serp?qc=images&q=ffxiv')
-            .then(response => response.json())
-            .then(result => { 
-                console.log(result);
-            })
-            message.channel.send("Let's test it!");
+/*====================================================================================
+=============================COMMAND #10 - CREATE POLL================================
+===================[Maia, create poll X (option A) Y (option B)]======================
+====================================================================================*/
+        else if(args[0] == "create" && args[1] == "poll" && args[2] != null && args[3] != null){
+            pollOptionA = capitalizeFirstLetter(args[2]);
+            pollOptionB = capitalizeFirstLetter(args[3]);
+            let embed = new Discord.MessageEmbed()
+            .setTitle('Poll initiated by ' + message.author.username)
+            .addField('1. ' + pollOptionA, 'To vote for this option react with 💰')
+            .addField('2. ' + pollOptionB, 'To vote for this option react with 💪')
+            .setColor(0xA569BD)
+            .setThumbnail("https://cdn.discordapp.com/emojis/658062110965628938.png?v=1")
+            message.channel.send(embed).then(messageReaction => {
+                messageReaction.react('💰');
+                messageReaction.react('💪');
+                //message.delete(5000);
+            });
         }
-        //if the command does not exist
+/*====================================================================================
+=========================COMMAND #11 - DESTINY API TEST===============================
+==================================[Maia, destiny]=====================================
+====================================================================================*/
+        else if(args[0] == "destiny"){
+            fetch('https://www.bungie.net/Platform/User/GetBungieNetUserById/6335406/', {
+                headers: { "X-API-Key": destinyApiKey }    
+            })
+                .then(response => response.json())
+                .then(result => { console.log(result);
+            })
+        }
+/*====================================================================================
+=============================COMMAND #0 - DEFAULT COMMAND=============================
+=======================[If Maia does not recognize the command]=======================
+====================================================================================*/
         else{
             message.channel.send("Sorry, I didn't understand that :(");
         }
     }
 
-    //react on messages in the-goblet, jojokes and work channels
+/*====================================================================================
+==================================CHANNEL REACTIONS===================================
+=========[When interacting in certain channels, Maia will give reactions]=============
+====================================================================================*/
     if (message.channel.name === "the-goblet") {
         message.react('👍');
     }
@@ -235,12 +358,23 @@ bot.on('message', message => {
     }
 })
 
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+================================================================================================
+=====================================FUNCTIONS==================================================
+================================================================================================
+-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 
-//functions
+/*====================================================================================
+=====================[Capitalize the first letter of a string]========================
+====================================================================================*/
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
-
+/*====================================================================================
+========================[Fetch an item from the ffxiv api]============================
+====================================================================================*/
 function findItem(itemId, message){
     //fetch an answer
     fetch('https://xivapi.com/Item/' + itemId)
@@ -282,7 +416,9 @@ function findItem(itemId, message){
         }
     })
 }
-
+/*====================================================================================
+==================[Process a player profile from the ffxiv api]=======================
+====================================================================================*/
 function processPlayerProfile(result, message){
     //process the answer
     ffxivProfileData.ID = result.Character.ID;
@@ -325,12 +461,6 @@ function processPlayerProfile(result, message){
     }
     else{
         ffxivProfileData.FreeCompany = "-";
-    }
-    if(!result.Character.Bio == "-"){
-        ffxivProfileData.Bio = result.Character.Bio;
-    }
-    else{
-        ffxivProfileData.Bio = "No bio.";
     }
     switch(result.Character.Gender){
         case 1: 
@@ -382,32 +512,70 @@ function processPlayerProfile(result, message){
     else{
         ffxivProfileData.GrandCompany = "-";
     }
-    //display a different message depending on which fetch we used
-    if(numberOfResults > 1){
-        message.channel.send("Is this who you were looking for? :)");
-    }
-    else{
-        message.channel.send("Here you go :)");
-    }
-    //reset search results
-    numberOfResults = 0;
-    //display player profile
-    let embed = new Discord.MessageEmbed()
-    .setTitle(ffxivProfileData.Name)
-    .addField(ffxivProfileData.Bio, "Level " + ffxivProfileData.ClassLevel + " " + ffxivProfileData.ActiveClass)
-    .addField(ffxivProfileData.Gender + " " + ffxivProfileData.Race, "Server: " + ffxivProfileData.Server + "\nDatacenter: " + ffxivProfileData.Datacenter)
-    .addField("Grand Company: " + ffxivProfileData.GrandCompany, "Free Company: " + ffxivProfileData.FreeCompany)
-    .setImage(ffxivProfileData.Avatar)
-    .setFooter("Profile ID: " + ffxivProfileData.ID)
-    .setColor(0xA569BD)
-    return message.channel.send(embed);
+    //get the character title name from id
+    ffxivProfileData.TitleId = result.Character.Title;
+    fetch('https://xivapi.com/title?limit=521')
+    .then(response => response.json())
+    .then(titleResult => { 
+        ffxivProfileData.Title = titleResult.Results[ffxivProfileData.TitleId - 1].Name;
+        //display a different message depending on which fetch we used
+        if(numberOfResults > 1){
+            message.channel.send("Is this who you were looking for? :)");
+        }
+        else{
+            message.channel.send("Here you go :)");
+        }
+        //reset search results
+        numberOfResults = 0;
+        //display player profile
+        let embed = new Discord.MessageEmbed()
+        .setTitle(ffxivProfileData.Name)
+        .addField(ffxivProfileData.Title, "Level " + ffxivProfileData.ClassLevel + " " + ffxivProfileData.ActiveClass)
+        .addField(ffxivProfileData.Gender + " " + ffxivProfileData.Race, "Server: " + ffxivProfileData.Server + "\nDatacenter: " + ffxivProfileData.Datacenter)
+        .addField("Grand Company: " + ffxivProfileData.GrandCompany, "Free Company: " + ffxivProfileData.FreeCompany)
+        .setImage(ffxivProfileData.Avatar)
+        .setFooter("Profile ID: " + ffxivProfileData.ID)
+        .setColor(0xA569BD)
+        return message.channel.send(embed);
+    })
 }
-
-//embed with list of commands (keep at the bottom of file)
+/*====================================================================================
+====================[Process the servers from the ffxiv api]==========================
+====================================================================================*/
+function getServers(result){
+    for(i = 0; i < result.Aether.length; i++){
+        Servers.Aether = Servers.Aether + "\n" + result.Aether[i];
+    }
+    for(i = 0; i < result.Chaos.length; i++){
+        Servers.Chaos = Servers.Chaos + "\n" + result.Chaos[i];
+    }
+    for(i = 0; i < result.Crystal.length; i++){
+        Servers.Crystal = Servers.Crystal + "\n" + result.Crystal[i];
+    }
+    for(i = 0; i < result.Elemental.length; i++){
+        Servers.Elemental = Servers.Elemental + "\n" + result.Elemental[i];
+    }
+    for(i = 0; i < result.Gaia.length; i++){
+        Servers.Gaia = Servers.Gaia + "\n" + result.Gaia[i];
+    }
+    for(i = 0; i < result.Light.length; i++){
+        Servers.Light = Servers.Light + "\n" + result.Light[i];
+    }
+    for(i = 0; i < result.Mana.length; i++){
+        Servers.Mana = Servers.Mana + "\n" + result.Mana[i];
+    }
+    for(i = 0; i < result.Primal.length; i++){
+        Servers.Primal = Servers.Primal + "\n" + result.Primal[i];
+    }
+}
+/*====================================================================================
+=====================[Display all commands inside an embed]===========================
+====================================================================================*/
 function showCommands(message){
     message.author.send("Here's a list of things you can ask of me :)");
     let embed = new Discord.MessageEmbed()
     .setTitle('Phrases')
+    .addField('List all data centers and servers', '* find all servers')
     .addField('Search for a player profile', '* find player X (first name) Y (last name)')
     .addField('Search for a player profile on a specific server', '* find player X (first name) Y (last name) on Z (server name)')
     .addField('Search for a random item', '* find random item')
@@ -420,5 +588,11 @@ function showCommands(message){
     message.author.send(embed);
 }
 
-//Login to our bot
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+================================================================================================
+=====================================LOGIN======================================================
+================================================================================================
+-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 bot.login(token);
