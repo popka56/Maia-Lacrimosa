@@ -26,7 +26,7 @@ const prefix = 'Maia, ';
 *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 
 //Objects
-let ffxivItemData = {
+let ffxivData = {
     ID: "",
     Name: "",
     Description: "",
@@ -153,26 +153,51 @@ bot.on('message', message => {
             message.reply("I'll send you a pm! :)");
             showCommands(message);
         }
-        // find items by id (Maia, find item X)
-        else if(args[0] == 'find' && args[1] == 'item' && args[2] != null){
+/*====================================================================================
+==========================COMMAND #2 - GET INDEX BY ID================================
+==========================[Maia, find X (index) Y (id)]===============================
+====================================================================================*/
+        else if(args[0] == 'find' && (args[1] == 'achievement' || 
+                                      args[1] == 'action' || 
+                                      args[1] == 'trait' || 
+                                      args[1] == 'status' || 
+                                      args[1] == 'monster' || //bnpcname
+                                      args[1] == 'npc' || //enpcresident
+                                      args[1] == 'minion' || //companion
+                                      args[1] == 'mount' || 
+                                      args[1] == 'leve' || 
+                                      args[1] == 'emote' || 
+                                      args[1] == 'instancecontent' || 
+                                      args[1] == 'item' ||
+                                      args[1] == 'recipe' ||
+                                      args[1] == 'fate' ||
+                                      args[1] == 'contentfindercondition' ||
+                                      args[1] == 'barding' || //buddyequip
+                                      args[1] == 'orchestrion' ||
+                                      args[1] == 'title' ||
+                                      args[1] == 'location') //placename
+                                      && args[2] != null){
             //check if valid id
-            if(args[2] >= 1 && args[2] <= 30281){
+            if(args[2] >= 1){
                 //fetch the item
-                findItem(args[2], message);
+                findItem(args[1], args[2], message);
             }
             else{
-                message.channel.send('No item with the id ' + args[2] + ' exists! \nTry a number between 1 and 30281.');
+                message.channel.send('Nothing with the id ' + args[2] + ' exists! \nTry doing a search instead?');
             }
         }
-        //find random item (Maia, find random item)
+/*====================================================================================
+===========================COMMAND #3 - GET RANDOM ITEM===============================
+==============================[Maia, find random item]================================
+====================================================================================*/
         else if(args[0] == 'find' && args[1] == 'random' && args[2] == 'item'){
             //get a valid id
-            let itemId = Math.floor(Math.random() * 30281) + 1;
+            let itemId = Math.floor(Math.random() * 30281) + 1; //30281 is the current max non-empty item id
             //fetch the item
-            findItem(itemId, message);
+            findItem(args[2], itemId, message);
         }
 /*====================================================================================
-=============================COMMAND #2 - FIND PLAYER=================================
+=============================COMMAND #4 - FIND PLAYER=================================
 ==================[Maia, find player X (first name) Y (last name)]====================
 ====================================================================================*/
         else if(args[0] == 'find' && args[1] == 'player' && args[3] != undefined && args[4] == undefined){
@@ -199,7 +224,7 @@ bot.on('message', message => {
             message.channel.send('Alright, hold on...');
         }
 /*====================================================================================
-=============================COMMAND #3 - FIND PLAYER ON SERVER=======================
+=============================COMMAND #5 - FIND PLAYER ON SERVER=======================
 ============[Maia, find player X (first name) Y (last name) Z (server name)]==========
 ====================================================================================*/
         else if(args[0] == 'find' && args[1] == 'player' && args[4] == 'on' && args[5] != undefined){
@@ -225,21 +250,29 @@ bot.on('message', message => {
             message.channel.send("Okay, just a sec...");
         }
 /*====================================================================================
-=============================COMMAND #4 - GET STATUS MUSIC============================
+=============================COMMAND #6 - SEARCH THE FFXIV API========================
+===========================[Maia, search for X (type) Y (string)]=====================
+====================================================================================*/
+        else if(args[0] == 'search' && args[1] == 'for' && args[2] != null && args[3] != null){
+            message.channel.send('Just a sec...');
+            searchFfxivApi(args, message);
+        }
+/*====================================================================================
+=============================COMMAND #7 - GET STATUS MUSIC============================
 ===========================[Maia, what are you listening to?]=========================
 ====================================================================================*/
         else if(args[0] == 'what' && args[1] == 'are' && args[2] == 'you' && args[3] == 'listening' && (args[4] == 'to?' || args[4] == 'to')){
             message.channel.send("One of my favs 🎵 \n" + youtubeLink);
         }
 /*====================================================================================
-=============================COMMAND #5 - MAIA'S HEALTH===============================
+=============================COMMAND #8 - MAIA'S HEALTH===============================
 ================================[Maia, are you okay?]=================================
 ====================================================================================*/
         else if(args[0] == 'are' && args[1] == 'you' && (args[2] == 'ok' || args[2] == 'okay' || args[2] == 'k' || args[2] == 'ok?' || args[2] == 'okay?' || args[2] == 'k?')){
             message.channel.send("Yes I'm fine, thank you :)");
         }
 /*====================================================================================
-=============================COMMAND #6 - GET MAIA PROFILE============================
+=============================COMMAND #9 - GET MAIA PROFILE============================
 ===================================[Maia, who are you?]===============================
 ====================================================================================*/
         else if(args[0] == 'who' && args[1] == 'are' && (args[4] == 'you' || args[4] != 'you?')){
@@ -252,7 +285,7 @@ bot.on('message', message => {
             message.channel.send("I'll just show you...");
         }
 /*====================================================================================
-=============================COMMAND #7 - LIST SERVERS================================
+=============================COMMAND #10 - LIST SERVERS===============================
 ==============================[Maia, find all servers]================================
 ====================================================================================*/
         else if(args[0] == 'find' && args[1] == 'all' && (args[4] == 'servers' || args[4] != 'datacenters')){
@@ -275,7 +308,31 @@ bot.on('message', message => {
              })
         }
 /*====================================================================================
-=============================COMMAND #8 - LINK WEBSITE================================
+=============================COMMAND #11 - LIST INDEXES===============================
+========================[Maia, what are the valid indexes?]===========================
+====================================================================================*/
+        else if(args[0] == 'what' && args[1] == 'are' && args[2] == 'the' && args[3] == 'valid' && (args[4] == 'indexes?' || args[4] == 'indexes')){
+            //display the valid indexes in a list
+            message.reply("I'll send you a list! :)")
+            message.author.send('Here they are :)');
+            let embed = new Discord.MessageEmbed()
+            .setTitle('Valid Indexes')
+            .setColor(0xA569BD)
+            .addField('Achievement', 'Title')
+            .addField('Action', 'Trait')
+            .addField('Status', 'Monster')
+            .addField('Minion', 'Mount')
+            .addField('Leve', 'Emote')
+            .addField('InstanceContent', 'Item')
+            .addField('Recipe', 'Fate')
+            .addField('ContentFinderCondition', 'Barding')
+            .addField('Orchestrion','Location')
+            .addField('Npc','More to come...')
+            .setFooter('Note: Some ID:s may be empty or may be missing certain information.')
+            message.author.send(embed);
+        }
+/*====================================================================================
+============================COMMAND #11 - LINK WEBSITE================================
 ==================[Maia, find my website ('The DM' role only)]========================
 ====================================================================================*/
         else if(args[0] == 'find' && args[1] == 'my' && (args[2] == 'world' || args[2] == 'website')){
@@ -287,7 +344,7 @@ bot.on('message', message => {
             }
         }
 /*====================================================================================
-=============================COMMAND #9 - REACTIONS===================================
+=============================COMMAND #12 - REACTIONS==================================
 ==========================[Maia, you are X (flattery)]================================
 ====================================================================================*/
         else if(args[0] == 'you' && args[1] == 'are' && args[2] != null){
@@ -304,7 +361,7 @@ bot.on('message', message => {
             }
         }
 /*====================================================================================
-=============================COMMAND #10 - CREATE POLL================================
+=============================COMMAND #13 - CREATE POLL================================
 ===================[Maia, create poll X (option A) Y (option B)]======================
 ====================================================================================*/
         else if(args[0] == "create" && args[1] == "poll" && args[2] != null && args[3] != null){
@@ -323,7 +380,7 @@ bot.on('message', message => {
             });
         }
 /*====================================================================================
-=========================COMMAND #11 - DESTINY API TEST===============================
+=========================COMMAND #14 - DESTINY API TEST===============================
 ==================================[Maia, destiny]=====================================
 ====================================================================================*/
         else if(args[0] == "destiny"){
@@ -342,7 +399,6 @@ bot.on('message', message => {
             message.channel.send("Sorry, I didn't understand that :(");
         }
     }
-
 /*====================================================================================
 ==================================CHANNEL REACTIONS===================================
 =========[When interacting in certain channels, Maia will give reactions]=============
@@ -351,7 +407,9 @@ bot.on('message', message => {
         message.react('👍');
     }
     else if(message.channel.name === "jojokes"){
-        message.react('😂');
+        if(message.startsWith('http')){
+            message.react('😂');
+        }
     }
     else if(message.channel.name === "work"){
         message.react('👍');
@@ -375,45 +433,275 @@ function capitalizeFirstLetter(string) {
 /*====================================================================================
 ========================[Fetch an item from the ffxiv api]============================
 ====================================================================================*/
-function findItem(itemId, message){
+function findItem(itemIndex, itemId, message){
+    let index = itemIndex;
+    let urlIndex = index;
+    switch(itemIndex){
+        case "minion":
+            urlIndex = "companion";
+            break;
+        case "barding":
+            urlIndex = "buddyequip";
+            break;
+        case "monster":
+            urlIndex = "bnpcname";
+            break;
+        case "location":
+            urlIndex = "placename";
+            break;
+        case "npc":
+            urlIndex = "enpcresident";
+            break;
+    }
     //fetch an answer
-    fetch('https://xivapi.com/Item/' + itemId)
+    fetch('https://xivapi.com/' + urlIndex + '/' + itemId)
     .then(response => response.json())
     .then(result => {
         //process the answer
         let itemNullValues = 0; 
-        ffxivItemData.ID = result.ID;
-        ffxivItemData.Name = result.Name;
-        if(result.Name == ""){
-            ffxivItemData.Name = "No name.";
+
+        if(result.ID == "" || result.ID == null || result.ID == undefined){
+            ffxivData.ID = "Missing ID";
             itemNullValues++;
         }
         else{
-            ffxivItemData.Name = result.Name;
+            ffxivData.ID = result.ID;
         }
-        if(result.Description_en == ""){
-            ffxivItemData.Description = "No description.";
+
+        if(result.Name == "" || result.Name == null || result.Name == undefined){
+            ffxivData.Name = "No name.";
             itemNullValues++;
         }
         else{
-            ffxivItemData.Description = result.Description_en;
+            ffxivData.Name = result.Name;
         }
-        ffxivItemData.Type = result.ItemKind.Name;
-        ffxivItemData.Icon = 'https://xivapi.com/' + result.Icon;
+
+        if(result.Description_en == "" || result.Description_en == null || result.Description_en == undefined){
+            ffxivData.Description = "No description.";
+            itemNullValues++;
+        }
+        else{
+            ffxivData.Description = result.Description_en;
+        }
+
+        //only items have an itemkind
+        if(index == 'item' || index == 'Item'){
+            ffxivData.Type = result.ItemKind.Name;
+        }
+        //only actions have an actioncategory
+        else if(index == 'action' || index == 'Action'){
+            ffxivData.Type = result.ActionCategory.Name;
+        }
+        //only achievements have an AchievementCategory.AchievementKind
+        else if(index == 'achievement' || index == 'Achievement'){
+            ffxivData.Type = 'Achievement (' + result.AchievementCategory.AchievementKind.Name + ')';
+        }
+        else{
+            ffxivData.Type = capitalizeFirstLetter(index);
+        }
+
+        ffxivData.Icon = 'https://xivapi.com/' + result.Icon;
+
         //the reply
         if(itemNullValues >= 2){
-            message.channel.send("Unfortunately, that item id is empty :(");
+            message.channel.send("Unfortunately, that "+ index + " id is empty :(");
         }
         else{
             message.channel.send("Here you go :)");
             let embed = new Discord.MessageEmbed()
-            .setTitle(ffxivItemData.Name)
-            .addField(ffxivItemData.Type, ffxivItemData.Description)
-            .setImage(ffxivItemData.Icon)
-            .setFooter('Item ID: ' + ffxivItemData.ID)
+            .setTitle(ffxivData.Name)
+            .addField(ffxivData.Type, ffxivData.Description)
+            .setImage(ffxivData.Icon)
+            .setFooter(capitalizeFirstLetter(index) + ' ID: ' + ffxivData.ID)
             .setColor(0xA569BD)
             return message.channel.send(embed);
         }
+    })
+}
+/*====================================================================================
+=================[Fetch results from a search in the ffxiv api]=======================
+====================================================================================*/
+function searchFfxivApi(args, message){
+    //prepare the query
+    let index = args[2];
+    let urlIndex = index;
+    switch(args[2]){
+        case "minion":
+            urlIndex = "companion";
+            break;
+        case "barding":
+            urlIndex = "buddyequip";
+            break;
+        case "monster":
+            urlIndex = "bnpcname";
+            break;
+        case "location":
+            urlIndex = "placename";
+            break;
+        case "npc":
+            urlIndex = "enpcresident";
+            break;
+    }
+    let data = {};
+    //get the search string
+    let searchString = message.content.split(args[2] + ' ');
+    
+    //if the user wants to search for anything, ie. 'Maia, search for any string'
+    if(args[2] == "any"){
+        data =     
+        {
+            "columns": "ID,Name,Icon,LevelItem,LevelEquip,Description_en,ItemKind.Name,ActionCategory.Name,AchievementCategory.AchievementKind.Name,Url",
+            "body": {
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "wildcard": {
+                        "NameCombined_en": '*' + searchString[1] + '*'
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+        }
+    }
+    else{
+        data =     
+        {
+            "indexes": urlIndex,
+            "columns": "ID,Name,Icon,LevelItem,LevelEquip,Description_en,ItemKind.Name,ActionCategory.Name,AchievementCategory.AchievementKind.Name",
+            "body": {
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "wildcard": {
+                        "NameCombined_en": '*' + searchString[1] + '*'
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+        }
+    }
+    //send the post request
+    fetch('https://xivapi.com/search', {
+    method: "POST",
+    header: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+
+        //if it was only 1 result
+        if(result.Results.length >= 1){
+            
+            //tell the user how many results were found
+            message.channel.send('I found ' + result.Pagination.ResultsTotal + ' result(s)!');
+
+            //if it was a search spanning multiple indexes, find the type of the results
+            if(result.Results[0].Url != null){
+                let anyType = result.Results[0].Url.split('/');
+                index = anyType[1];
+            }
+
+            //process the result 
+            ffxivData.ID = result.Results[0].ID;
+
+            if(result.Results[0].Name == ""){
+                ffxivData.Name = "No name.";
+            }
+            else{
+                ffxivData.Name = capitalizeFirstLetter(result.Results[0].Name);
+            }
+
+            if(result.Results[0].Description_en == "" || result.Results[0].Description_en == null || result.Results[0].Description_en == undefined){
+                ffxivData.Description = "No description.";
+            }
+            else{
+                ffxivData.Description = result.Results[0].Description_en;
+            }
+
+            //only items have an itemKind
+            if(index == "item" || index == "Item"){
+                ffxivData.Type = result.Results[0].ItemKind.Name;
+            }
+            //only actions have an actioncategory
+            else if(index == 'action' || index == 'Action'){
+                ffxivData.Type = result.Results[0].ActionCategory.Name;
+            }
+            //only achievements have an AchievementCategory.AchievementKind
+            else if(index == 'achievement' || index == 'Achievement'){
+                ffxivData.Type = 'Achievement (' + result.Results[0].AchievementCategory.AchievementKind.Name + ')';
+            }
+            else{
+                ffxivData.Type = capitalizeFirstLetter(index);
+            }
+
+            ffxivData.Icon = 'https://xivapi.com/' + result.Results[0].Icon;
+
+            //display the item
+            message.channel.send("Is this what you were looking for?");
+            let embed = new Discord.MessageEmbed()
+            .setTitle(ffxivData.Name)
+            .addField(ffxivData.Type, ffxivData.Description)
+            .setImage(ffxivData.Icon)
+            .setFooter(capitalizeFirstLetter(index) + ' ID: ' + ffxivData.ID)
+            .setColor(0xA569BD)
+            message.channel.send(embed);
+        }
+        else{
+            message.channel.send('I found nothing! :(');
+            message.channel.send('Did you misspell your search?');
+        }
+        //if it was multiple items, show some more results
+        if(result.Results.length > 1){
+            
+            let embedOther = new Discord.MessageEmbed() 
+            .setTitle('Other results included:');
+            
+            for(i = 1; i < result.Results.length; i++){
+                ffxivData.ID = result.Results[i].ID;
+                ffxivData.Name = capitalizeFirstLetter(result.Results[i].Name);
+
+                //if it was a search spanning multiple indexes
+                if(result.Results[0].Url != null){
+                    let anyType = result.Results[i].Url.split('/');
+                    switch(anyType[1]){
+                        case "Companion":
+                            anyType[1] = "Minion";
+                            break;
+                        case "BuddyEquip":
+                            anyType[1] = "Barding";
+                            break;
+                        case "BNpcName":
+                            anyType[1] = "Monster";
+                            break;
+                        case "PlaceName":
+                            anyType[1] = "Location";
+                            break;
+                        case "ENpcResident":
+                            anyType[1] = "Npc";
+                            break;
+                    }
+                    ffxivData.Type = anyType[1];
+                }
+                else{
+                    ffxivData.Type = capitalizeFirstLetter(index);
+                }
+
+                //write the final result
+                embedOther.addField(ffxivData.Name, "(" + ffxivData.Type + " ID: " + ffxivData.ID + ")")
+            }
+            
+            embedOther.setFooter('Not what you were looking for? Try a more specific search!');
+            message.channel.send(embedOther);
+        }
+
     })
 }
 /*====================================================================================
@@ -446,7 +734,7 @@ function processPlayerProfile(result, message){
             classArgs[3] = capitalizeFirstLetter(classArgs[3]);
             ffxivProfileData.ActiveClass = classArgs[0] + " / " +  classArgs[2] + " " + classArgs[3];
             break;
-        //case 5 will happen on red mage and arcanist (ie: "red mage / red mage")
+        //case 5 will happen on red mage (ie: "red mage / red mage")
         case 5: 
             classArgs[0] = capitalizeFirstLetter(classArgs[0]);
             classArgs[1] = capitalizeFirstLetter(classArgs[1]);                                classArgs[0] = capitalizeFirstLetter(classArgs[0]);
@@ -514,7 +802,7 @@ function processPlayerProfile(result, message){
     }
     //get the character title name from id
     ffxivProfileData.TitleId = result.Character.Title;
-    fetch('https://xivapi.com/title?limit=521')
+    fetch('https://xivapi.com/title?limit=521') //the limit is the total amount of titles currently in-game
     .then(response => response.json())
     .then(titleResult => { 
         ffxivProfileData.Title = titleResult.Results[ffxivProfileData.TitleId - 1].Name;
@@ -578,8 +866,10 @@ function showCommands(message){
     .addField('List all data centers and servers', '* find all servers')
     .addField('Search for a player profile', '* find player X (first name) Y (last name)')
     .addField('Search for a player profile on a specific server', '* find player X (first name) Y (last name) on Z (server name)')
-    .addField('Search for a random item', '* find random item')
-    .addField('Search for a specific item', '* find item X (item ID)')
+    .addField('Get a random item', '* find random item')
+    .addField('Get a specific item by index and ID', '* find X (index) Y (index ID)')
+    .addField('Search for something!', '* search for X (index) Y (search string)')
+    .addField('List all valid indexes', '* what are the valid indexes?')
     .addField('Display my profile', '* who are you?')
     .addField('Get a link to the song I am currently listening to', '* what are you listening to?')
     .setFooter("There's some other secret phrases too ;)")
