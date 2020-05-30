@@ -31,7 +31,12 @@ let ffxivData = {
     Name: "",
     Description: "",
     Type: "",
-    Icon: ""
+    Icon: "",
+    IsUntradable: "",
+    ItemLevel: 0,
+    SellPrice: 0,
+    RequiredLevel: 0,
+    Class: ""
 }
 
 let ffxivProfileData = {
@@ -484,9 +489,37 @@ function findItem(itemIndex, itemId, message){
             ffxivData.Description = result.Description_en;
         }
 
-        //only items have an itemkind
+        //only items have an itemUICategory and so on...
         if(index == 'item' || index == 'Item'){
-            ffxivData.Type = result.ItemKind.Name;
+
+            if(result.ItemUICategory){
+                ffxivData.Type = result.ItemUICategory.Name;
+            }
+            else{
+                ffxivData.Type = "Item";
+            }
+
+            ffxivData.ItemLevel = result.LevelItem;
+
+            if(!result.PriceLow){
+                ffxivData.SellPrice = "Unsellable"
+            }
+            else{
+                ffxivData.SellPrice = 'Sells for ' + result.PriceLow + ' gil';
+            }
+
+            ffxivData.RequiredLevel = 'Lv. ' + result.LevelEquip;
+            
+            if(result.ClassJobCategory){
+                ffxivData.Class = result.ClassJobCategory.Name;
+            }
+
+            if(result.IsUntradable){
+                ffxivData.IsUntradable = "Untradable";
+            }
+            else{
+                ffxivData.IsUntradable = "Tradable";
+            }
         }
         //only actions have an actioncategory
         else if(index == 'action' || index == 'Action'){
@@ -510,10 +543,36 @@ function findItem(itemIndex, itemId, message){
             message.channel.send("Here you go :)");
             let embed = new Discord.MessageEmbed()
             .setTitle(ffxivData.Name)
-            .addField(ffxivData.Type, ffxivData.Description)
-            .setImage(ffxivData.Icon)
-            .setFooter(capitalizeFirstLetter(index) + ' ID: ' + ffxivData.ID)
-            .setColor(0xA569BD)
+            if(result.ClassJobCategory){
+                embed.addField(ffxivData.Type + ' (' + ffxivData.Class + ')', ffxivData.Description)
+            }
+            else{
+                embed.addField(ffxivData.Type, ffxivData.Description)
+            }
+            embed.setThumbnail(ffxivData.Icon)
+            if(index == "item" || index == "Item"){
+                embed.addField('Item Level: ' + ffxivData.ItemLevel  + ' | ' + ffxivData.RequiredLevel, ffxivData.IsUntradable + ' | ' + ffxivData.SellPrice)
+            }
+            embed.setFooter(capitalizeFirstLetter(index) + ' ID: ' + ffxivData.ID)
+            if(result.Rarity){
+                switch(result.Rarity){
+                    case 1:
+                        embed.setColor(0x717D7E)
+                        break;
+                    case 2:
+                        embed.setColor(0x52BE80)
+                        break;
+                    case 3:
+                        embed.setColor(0x5499C7)
+                        break;
+                    case 4:
+                        embed.setColor(0xA569BD)
+                        break;
+                    default:
+                        embed.setColor(0xF5B7B1)
+                        break;
+                }
+            }
             return message.channel.send(embed);
         }
     })
@@ -550,7 +609,7 @@ function searchFfxivApi(args, message){
     if(args[2] == "any"){
         data =     
         {
-            "columns": "ID,Name,Icon,LevelItem,LevelEquip,Description_en,ItemKind.Name,ActionCategory.Name,AchievementCategory.AchievementKind.Name,Url",
+            "columns": "ID,Name,Icon,LevelItem,LevelEquip,ClassJobCategory.Name,IsUntradable,PriceLow,PriceMid,Description_en,ItemUICategory.Name,ActionCategory.Name,AchievementCategory.AchievementKind.Name,Url",
             "body": {
               "query": {
                 "bool": {
@@ -570,7 +629,7 @@ function searchFfxivApi(args, message){
         data =     
         {
             "indexes": urlIndex,
-            "columns": "ID,Name,Icon,LevelItem,LevelEquip,Description_en,ItemKind.Name,ActionCategory.Name,AchievementCategory.AchievementKind.Name",
+            "columns": "ID,Name,Icon,LevelItem,LevelEquip,ClassJobCategory.Name,IsUntradable,PriceLow,PriceMid,Description_en,ItemUICategory.Name,ActionCategory.Name,AchievementCategory.AchievementKind.Name",
             "body": {
               "query": {
                 "bool": {
@@ -626,9 +685,37 @@ function searchFfxivApi(args, message){
                 ffxivData.Description = result.Results[0].Description_en;
             }
 
-            //only items have an itemKind
+            //only items have the following
             if(index == "item" || index == "Item"){
-                ffxivData.Type = result.Results[0].ItemKind.Name;
+
+                if(result.Results[0].ItemUICategory){
+                    ffxivData.Type = result.Results[0].ItemUICategory.Name;
+                }
+                else{
+                    ffxivData.Type = "Item";
+                }
+
+                ffxivData.ItemLevel = result.Results[0].LevelItem;
+
+                if(!result.Results[0].PriceLow){
+                    ffxivData.SellPrice = "Unsellable"
+                }
+                else{
+                    ffxivData.SellPrice = 'Sells for ' + result.Results[0].PriceLow + ' gil';
+                }
+
+                ffxivData.RequiredLevel = 'Lv. ' + result.Results[0].LevelEquip;
+
+                if(result.Results[0].ClassJobCategory){
+                    ffxivData.Class = result.ClassJobCategory.Name;
+                }
+    
+                if(result.IsUntradable){
+                    ffxivData.IsUntradable = "Untradable";
+                }
+                else{
+                    ffxivData.IsUntradable = "Tradable";
+                }
             }
             //only actions have an actioncategory
             else if(index == 'action' || index == 'Action'){
@@ -648,10 +735,36 @@ function searchFfxivApi(args, message){
             message.channel.send("Is this what you were looking for?");
             let embed = new Discord.MessageEmbed()
             .setTitle(ffxivData.Name)
-            .addField(ffxivData.Type, ffxivData.Description)
-            .setImage(ffxivData.Icon)
-            .setFooter(capitalizeFirstLetter(index) + ' ID: ' + ffxivData.ID)
-            .setColor(0xA569BD)
+            if(result.Results[0].ClassJobCategory){
+                embed.addField(ffxivData.Type + ' (' + ffxivData.Class + ')', ffxivData.Description)
+            }
+            else{
+                embed.addField(ffxivData.Type, ffxivData.Description)
+            }
+            embed.setThumbnail(ffxivData.Icon)
+            if(index == "item" || index == "Item"){
+                embed.addField('Item Level: ' + ffxivData.ItemLevel  + ' | ' + ffxivData.RequiredLevel, ffxivData.IsUntradable + ' | ' + ffxivData.SellPrice)
+            }
+            embed.setFooter(capitalizeFirstLetter(index) + ' ID: ' + ffxivData.ID)
+            if(result.Rarity){
+                switch(result.Rarity){
+                    case 1:
+                        embed.setColor(0x717D7E)
+                        break;
+                    case 2:
+                        embed.setColor(0x52BE80)
+                        break;
+                    case 3:
+                        embed.setColor(0x5499C7)
+                        break;
+                    case 4:
+                        embed.setColor(0xA569BD)
+                        break;
+                    default:
+                        embed.setColor(0xF5B7B1)
+                        break;
+                }
+            }
             message.channel.send(embed);
         }
         else{
