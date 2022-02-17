@@ -197,7 +197,7 @@ bot.on('message', message => {
 ====================================================================================*/
         else if(args[0] == 'find' && args[1] == 'random' && args[2] == 'item'){
             //get a valid id
-            let itemId = Math.floor(Math.random() * 30281) + 1; //30281 is the current max non-empty item id
+            let itemId = Math.floor(Math.random() * 36700) + 1; //36700 is the current max non-empty item id (Endwalker launch)
             //fetch the item
             findItem(args[2], itemId, message);
         }
@@ -342,7 +342,7 @@ bot.on('message', message => {
 ====================================================================================*/
         else if(args[0] == 'find' && args[1] == 'my' && (args[2] == 'world' || args[2] == 'website')){
             if(message.member.roles.cache.find(role => role.name === "The DM")){
-                message.channel.send("https://thorczhia.com/");
+                message.channel.send("http://shimagara.games/");
             }
             else{
                 message.reply("You're not the DM!");
@@ -385,16 +385,11 @@ bot.on('message', message => {
             });
         }
 /*====================================================================================
-=========================COMMAND #14 - DESTINY API TEST===============================
-==================================[Maia, destiny]=====================================
+=========================COMMAND #14 - MATH QUESTION==================================
+===========================[Maia, calculate x + y]====================================
 ====================================================================================*/
-        else if(args[0] == "destiny"){
-            fetch('https://www.bungie.net/Platform/User/GetBungieNetUserById/6335406/', {
-                headers: { "X-API-Key": destinyApiKey }    
-            })
-                .then(response => response.json())
-                .then(result => { console.log(result);
-            })
+        else if(args[0] == "calculate" && args[2] != null && args[3] != null && args[4] != null){
+            message.channel.send("Easy, that is " + eval(args[2] + " " + args[3] + " " + args[4]));
         }
 /*====================================================================================
 =============================COMMAND #0 - DEFAULT COMMAND=============================
@@ -544,7 +539,9 @@ function findItem(itemIndex, itemId, message){
             let embed = new Discord.MessageEmbed()
             .setTitle(ffxivData.Name)
             if(result.ClassJobCategory){
-                embed.addField(ffxivData.Type + ' (' + ffxivData.Class + ')', ffxivData.Description)
+                if(result.ClassJobCategory.Name != null || result.ClassJobCategory.Name != undefined){
+                    embed.addField(ffxivData.Type + ' (' + ffxivData.Class + ')', ffxivData.Description)
+                }
             }
             else{
                 embed.addField(ffxivData.Type, ffxivData.Description)
@@ -707,7 +704,7 @@ function searchFfxivApi(args, message){
                 ffxivData.RequiredLevel = 'Lv. ' + result.Results[0].LevelEquip;
 
                 if(result.Results[0].ClassJobCategory){
-                    ffxivData.Class = result.ClassJobCategory.Name;
+                    ffxivData.Class = result.Results[0].ClassJobCategory.Name;
                 }
     
                 if(result.IsUntradable){
@@ -736,7 +733,9 @@ function searchFfxivApi(args, message){
             let embed = new Discord.MessageEmbed()
             .setTitle(ffxivData.Name)
             if(result.Results[0].ClassJobCategory){
-                embed.addField(ffxivData.Type + ' (' + ffxivData.Class + ')', ffxivData.Description)
+                if(result.Results[0].ClassJobCategory.Name != null || result.Results[0].ClassJobCategory.Name != undefined){
+                    embed.addField(ffxivData.Type + ' (' + ffxivData.Class + ')', ffxivData.Description)
+                }
             }
             else{
                 embed.addField(ffxivData.Type, ffxivData.Description)
@@ -746,8 +745,8 @@ function searchFfxivApi(args, message){
                 embed.addField('Item Level: ' + ffxivData.ItemLevel  + ' | ' + ffxivData.RequiredLevel, ffxivData.IsUntradable + ' | ' + ffxivData.SellPrice)
             }
             embed.setFooter(capitalizeFirstLetter(index) + ' ID: ' + ffxivData.ID)
-            if(result.Rarity){
-                switch(result.Rarity){
+            if(result.Results[0].Rarity){
+                switch(result.Results[0].Rarity){
                     case 1:
                         embed.setColor(0x717D7E)
                         break;
@@ -985,6 +984,7 @@ function showCommands(message){
     .addField('List all valid indexes', '* what are the valid indexes?')
     .addField('Display my profile', '* who are you?')
     .addField('Get a link to the song I am currently listening to', '* what are you listening to?')
+    .addField('Solva a math question', '* calculate x (number) y (operator) z (number)')
     .setFooter("There's some other secret phrases too ;)")
     .setColor(0xA569BD)
     .setThumbnail("https://cdn.discordapp.com/emojis/654793362892783617.png?v=1")
