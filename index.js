@@ -388,8 +388,8 @@ bot.on('message', message => {
 =========================COMMAND #14 - MATH QUESTION==================================
 ===========================[Maia, calculate x + y]====================================
 ====================================================================================*/
-        else if(args[0] == "calculate" && args[2] != null && args[3] != null && args[4] != null){
-            message.channel.send("Easy, that is " + eval(args[2] + " " + args[3] + " " + args[4]));
+        else if(args[0] == "calculate" && args[1] != null && args[2] != null && args[3] != null){
+            message.channel.send("Easy, that is " + eval(args[1] + " " + args[2] + " " + args[3]));
         }
 /*====================================================================================
 =============================COMMAND #0 - DEFAULT COMMAND=============================
